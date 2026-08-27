@@ -8,13 +8,22 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/multi-agent")
 public class MultiAgentController {
+
     private final MultiAgentSupervisor supervisor;
-    public MultiAgentController(MultiAgentSupervisor supervisor) { this.supervisor = supervisor; }
+
+    public MultiAgentController(MultiAgentSupervisor supervisor) {
+        this.supervisor = supervisor;
+    }
 
     @PostMapping("/resolve")
     public MultiAgentSupervisor.AgentResult resolve(@Valid @RequestBody ResolveRequest request) {
-        return supervisor.resolve(new MultiAgentSupervisor.AgentTask(request.orderNumber(), request.customerMessage()));
+        return supervisor.resolve(request.message());
     }
 
-    public record ResolveRequest(@NotBlank String orderNumber, @NotBlank String customerMessage) {}
+    /**
+     * The public API intentionally accepts only the user's natural-language prompt.
+     * The multi-agent workflow extracts the order number internally.
+     */
+    public record ResolveRequest(@NotBlank String message) {
+    }
 }
