@@ -23,7 +23,15 @@ services:
       DB_USERNAME: ${POSTGRES_USER:-customer_support}
       DB_PASSWORD: ${POSTGRES_PASSWORD:-customer_support}
       SERVER_PORT: 8080
-      AGENT_ENABLED: ${AGENT_ENABLED:-false}
+
+      AGENT_ENABLED: ${AGENT_ENABLED:-true}
+
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPEN_AI_MODEL: ${OPEN_AI_MODEL:-gpt-5.4-nano}
+      OPEN_AI_EMBEDDING_MODEL: ${OPEN_AI_EMBEDDING_MODEL:-text-embedding-3-small}
+
+      RAG_ENABLED: ${RAG_ENABLED:-true}
+      RAG_TOP_K: ${RAG_TOP_K:-4}
+      RAG_SIMILARITY_THRESHOLD: ${RAG_SIMILARITY_THRESHOLD:-0.60}
     ports:
       - "8080:8080"
