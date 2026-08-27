@@ -20,6 +20,7 @@ spring:
 agent:
   enabled: ${AGENT_ENABLED:false}
   open-ai:
+    api-key: ${OPENAI_API_KEY:}
     model: ${OPEN_AI_MODEL:gpt-5.4-nano}
     embedding-model: ${OPEN_AI_EMBEDDING_MODEL:text-embedding-3-small}
 
