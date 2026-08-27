@@ -1,4 +1,45 @@
-const $=id=>document.getElementById(id);const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const md=s=>esc(s).replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n- (.*)/g,'<br>• $1').replace(/\n/g,'<br>');
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const md=s=>esc(s).replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n- (.*)/g,'<br>• $1').replace(/\n/g,'<br>');
+
 const renderTrace=e=>{const li=document.createElement('li');li.textContent=`${e.type} · ${e.component} · ${e.operation}`;$('events').appendChild(li);};
 const connectTrace=id=>{if(!id)return null;const stream=new EventSource(`/api/agent/executions/${encodeURIComponent(id)}/stream`);stream.addEventListener('trace',event=>renderTrace(JSON.parse(event.data)));stream.onerror=()=>stream.close();return stream;};
-$('resolve').onclick=async()=>{const mode=document.querySelector('input[name=mode]:checked').value;const orderNumber=$('orderNumber').value.trim();const message=$('message').value.trim();if(!message){alert('Enter a customer message.');return;}const multi=mode==='multi';const url=multi?'/api/multi-agent/resolve':'/api/agent/resolve';const body=multi?{orderNumber,customerMessage:message}:{message,orderNumber};$('progress').hidden=false;$('result').hidden=true;$('trace').hidden=false;$('stage').textContent=multi?'Supervisor is delegating to specialists…':'Agent is selecting tools…';$('events').innerHTML='';let stream;try{const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const data=await r.json();if(!r.ok)throw new Error(data.message||data.error||'Request failed');stream=connectTrace(data.executionId);const text=data.response||data.answer||data.result||data.message||JSON.stringify(data,null,2);$('answer').innerHTML=md(typeof text==='string'?text:JSON.stringify(text,null,2));$('result').hidden=false;$('stage').textContent='Completed';}catch(e){$('stage').textContent='Failed';$('answer').textContent=e.message;$('result').hidden=false;}finally{setTimeout(()=>stream?.close(),3000);}};
+
+document.querySelectorAll('.demo-case').forEach(button=>{
+  button.onclick=()=>{
+    document.querySelectorAll('.demo-case').forEach(item=>item.classList.remove('active'));
+    button.classList.add('active');
+    $('orderNumber').value=button.dataset.order;
+    $('message').value=button.dataset.message;
+  };
+});
+
+$('resolve').onclick=async()=>{
+  const mode=document.querySelector('input[name=mode]:checked').value;
+  const orderNumber=$('orderNumber').value.trim();
+  const message=$('message').value.trim();
+  if(!message){alert('Enter a customer message.');return;}
+  const multi=mode==='multi';
+  const url=multi?'/api/multi-agent/resolve':'/api/agent/resolve';
+  const body=multi?{orderNumber,customerMessage:message}:{message,orderNumber};
+  $('progress').hidden=false;$('result').hidden=true;$('trace').hidden=false;
+  $('stage').textContent=multi?'Supervisor is delegating to specialists…':'Agent is selecting tools…';
+  $('events').innerHTML='';
+  let stream;
+  try{
+    const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const data=await r.json();
+    if(!r.ok)throw new Error(data.message||data.error||'Request failed');
+    stream=connectTrace(data.executionId);
+    const text=data.response||data.answer||data.result||data.message||JSON.stringify(data,null,2);
+    $('answer').innerHTML=md(typeof text==='string'?text:JSON.stringify(text,null,2));
+    $('result').hidden=false;
+    $('stage').textContent='Completed';
+  }catch(e){
+    $('stage').textContent='Failed';
+    $('answer').textContent=e.message;
+    $('result').hidden=false;
+  }finally{
+    setTimeout(()=>stream?.close(),3000);
+  }
+};
