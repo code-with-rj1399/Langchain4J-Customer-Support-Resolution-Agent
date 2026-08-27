@@ -8,9 +8,11 @@ import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.store.embedding.EmbeddingMatch;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.stereotype.Service;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -18,10 +20,75 @@ import java.util.stream.Collectors;
 
 @Service
 public class PolicyKnowledgeService {
- private final EmbeddingStore<TextSegment> store; private final EmbeddingModel model; private final ResourcePatternResolver resolver;
- public PolicyKnowledgeService(EmbeddingStore<TextSegment> store, EmbeddingModel model, ResourcePatternResolver resolver){this.store=store;this.model=model;this.resolver=resolver;}
- @PostConstruct public void indexPolicies(){try{for(Resource r:resolver.getResources("classpath:/knowledge/*.md")){String source=Objects.requireNonNullElse(r.getFilename(),"unknown");String text=new String(r.getInputStream().readAllBytes(),StandardCharsets.UTF_8);Document d=Document.from(text,Metadata.from("source",source,"knowledgeBase","customer-support-policy","documentType","policy"));List<TextSegment> segments=DocumentSplitters.recursive(1200,200).split(d);for(TextSegment s:segments) store.add(model.embed(s).content(),s);}}catch(IOException e){throw new IllegalStateException("Unable to initialize policy knowledge base",e);}}
- public KnowledgeSearchResult search(String query){long started=System.nanoTime();List<EmbeddingMatch<TextSegment>> matches=store.findRelevant(model.embed(query).content(),4,0.60);long duration=(System.nanoTime()-started)/1_000_000;return new KnowledgeSearchResult(query,matches.stream().map(m->new KnowledgeMatch(m.embedded().metadata().getString("source"),m.score(),m.embedded().text())).toList(),duration);}
- public record KnowledgeSearchResult(String query,List<KnowledgeMatch> matches,long durationMs){public String context(){return matches.stream().map(m->"Source: "+m.source()+"\n"+m.content()).collect(Collectors.joining("\n\n---\n\n"));}}
- public record KnowledgeMatch(String source,double score,String content){}
+    private final EmbeddingStore<TextSegment> store;
+    private final EmbeddingModel model;
+    private final ResourcePatternResolver resolver;
+    private final boolean ragEnabled;
+    private final int topK;
+    private final double similarityThreshold;
+
+    public PolicyKnowledgeService(
+            EmbeddingStore<TextSegment> store,
+            EmbeddingModel model,
+            ResourcePatternResolver resolver,
+            @Value("${rag.enabled:true}") boolean ragEnabled,
+            @Value("${rag.top-k:4}") int topK,
+            @Value("${rag.similarity-threshold:0.60}") double similarityThreshold) {
+        this.store = store;
+        this.model = model;
+        this.resolver = resolver;
+        this.ragEnabled = ragEnabled;
+        this.topK = topK;
+        this.similarityThreshold = similarityThreshold;
+    }
+
+    @PostConstruct
+    public void indexPolicies() {
+        if (!ragEnabled) return;
+        try {
+            for (Resource resource : resolver.getResources("classpath:/knowledge/*.md")) {
+                String source = Objects.requireNonNullElse(resource.getFilename(), "unknown");
+                String text = new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+                Document document = Document.from(text,
+                        Metadata.from("source", source,
+                                "knowledgeBase", "customer-support-policy",
+                                "documentType", "policy"));
+                List<TextSegment> segments = DocumentSplitters.recursive(1200, 200).split(document);
+                for (TextSegment segment : segments) {
+                    store.add(model.embed(segment).content(), segment);
+                }
+            }
+        } catch (IOException e) {
+            throw new IllegalStateException("Unable to initialize policy knowledge base", e);
+        }
+    }
+
+    public KnowledgeSearchResult search(String query) {
+        long started = System.nanoTime();
+        if (!ragEnabled) {
+            return new KnowledgeSearchResult(query, List.of(), elapsed(started));
+        }
+        List<EmbeddingMatch<TextSegment>> matches = store.findRelevant(
+                model.embed(query).content(), topK, similarityThreshold);
+        return new KnowledgeSearchResult(query,
+                matches.stream().map(match -> new KnowledgeMatch(
+                        match.embedded().metadata().getString("source"),
+                        match.score(),
+                        match.embedded().text())).toList(),
+                elapsed(started));
+    }
+
+    private long elapsed(long started) {
+        return (System.nanoTime() - started) / 1_000_000;
+    }
+
+    public record KnowledgeSearchResult(String query, List<KnowledgeMatch> matches, long durationMs) {
+        public String context() {
+            return matches.stream()
+                    .map(match -> "Source: " + match.source() + "\n" + match.content())
+                    .collect(Collectors.joining("\n\n---\n\n"));
+        }
+    }
+
+    public record KnowledgeMatch(String source, double score, String content) {}
 }
