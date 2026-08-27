@@ -37,7 +37,7 @@ public class CustomerSupportTools {
     @Tool("Evaluate the deterministic refund policy. This is authoritative for refund eligibility.")
     public ApiDtos.RefundPolicyResponse checkRefundPolicy(String orderNumber) { return service.checkRefundPolicy(orderNumber); }
 
-    @Tool("Request a refund. The backend validates policy and payment state. Refunds up to ₹1,000 are processed automatically; higher-value eligible refunds require human approval. Never claim a pending approval has already been refunded.")
+    @Tool("Request a refund.")
     public RefundToolResponse requestRefund(String orderNumber, String reason, String idempotencyKey) {
         ApiDtos.RefundPolicyResponse policy = service.checkRefundPolicy(orderNumber);
         if (!policy.eligible()) {
