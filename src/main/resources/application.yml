@@ -19,6 +19,14 @@ spring:
 
 agent:
   enabled: ${AGENT_ENABLED:false}
+  open-ai:
+    model: ${OPEN_AI_MODEL:gpt-5.4-nano}
+    embedding-model: ${OPEN_AI_EMBEDDING_MODEL:text-embedding-3-small}
+
+rag:
+  enabled: ${RAG_ENABLED:true}
+  top-k: ${RAG_TOP_K:4}
+  similarity-threshold: ${RAG_SIMILARITY_THRESHOLD:0.60}
 
 server:
   port: ${SERVER_PORT:8080}
