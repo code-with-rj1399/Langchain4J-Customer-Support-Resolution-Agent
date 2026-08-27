@@ -15,6 +15,7 @@ This directory documents the Agentic AI concepts implemented in the LangChain4j 
 | Safety Boundary | [Safety Boundary](safety-boundary.md) |
 | Guardrails | [Guardrails](guardrails.md) |
 | Tool Contracts | [Agent Tool Contract](agent-tool-contract.md) |
+| Portfolio Agent UI | [UI](ui.md) |
 
 ## Suggested learning order
 
@@ -25,6 +26,7 @@ This directory documents the Agentic AI concepts implemented in the LangChain4j 
 5. Observability
 6. Human-in-the-Loop
 7. Guardrails
-8. Evaluation and testing
+8. UI and execution visualization
+9. Evaluation and testing
 
 The project intentionally keeps the same architectural principles as the Spring AI implementation while documenting the LangChain4j equivalents.
