@@ -1,0 +1,44 @@
+spring:
+  application:
+    name: langchain4j-customer-support-resolution
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/customer_support}
+    username: ${DB_USERNAME:customer_support}
+    password: ${DB_PASSWORD:customer_support}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+agent:
+  enabled: ${AGENT_ENABLED:false}
+  open-ai:
+    api-key: ${OPENAI_API_KEY:}
+    model: ${OPEN_AI_MODEL:gpt-5.4-nano}
+    embedding-model: ${OPEN_AI_EMBEDDING_MODEL:text-embedding-3-small}
+
+rag:
+  enabled: ${RAG_ENABLED:true}
+  top-k: ${RAG_TOP_K:4}
+  similarity-threshold: ${RAG_SIMILARITY_THRESHOLD:0.60}
+
+server:
+  port: ${SERVER_PORT:8080}
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
