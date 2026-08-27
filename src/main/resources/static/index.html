@@ -1,1 +1,63 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LangChain4j Customer Support Agent</title><link rel="stylesheet" href="/app.css"></head><body><main><header><p class="eyebrow">LANGCHAIN4J · AGENTIC AI</p><h1>Customer Support Resolution Agent</h1><p class="sub">Compare a single-agent workflow with a multi-agent workflow.</p></header><section class="card"><div class="mode"><label><input type="radio" name="mode" value="single" checked> Single Agent</label><label><input type="radio" name="mode" value="multi"> Multi-Agent</label></div><label>Order number<input id="orderNumber" value="1002" placeholder="e.g. 1002"></label><label>Customer message<textarea id="message" rows="5" placeholder="Describe the problem...">My order is delayed. Can I get a refund?</textarea></label><button id="resolve">Resolve request</button></section><section class="card" id="progress" hidden><h2>Agent progress</h2><p id="stage">Preparing request…</p><div class="spinner"></div></section><section class="card" id="result" hidden><h2>Resolution</h2><div id="answer"></div></section><section class="card" id="trace" hidden><h2>Execution</h2><p>High-level execution events are shown here. Hidden model reasoning is never displayed.</p><ol id="events"></ol></section></main><script src="/app.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LangChain4j Customer Support Resolution Agent</title>
+  <link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<main>
+  <header>
+    <p class="eyebrow">LANGCHAIN4J · AGENTIC AI</p>
+    <h1>Customer Support Resolution Agent</h1>
+    <p class="sub">Tool calling · RAG · Refund approval · Agent tracing</p>
+  </header>
+
+  <section class="card demo-cases">
+    <h2>Default demo cases</h2>
+    <div class="cases">
+      <button class="demo-case" data-order="1001" data-message="Where is my order? Please check the delivery status.">Order tracking</button>
+      <button class="demo-case" data-order="1002" data-message="My order is delayed. Can I get a refund? Please check the refund policy first.">Refund request</button>
+      <button class="demo-case" data-order="1003" data-message="Please investigate my order, payment and delivery status and tell me what resolution is available.">Full investigation</button>
+      <button class="demo-case" data-order="1002" data-message="I need help understanding the refund policy for my order.">Policy question</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="mode">
+      <label><input type="radio" name="mode" value="single" checked> Single Agent</label>
+      <label><input type="radio" name="mode" value="multi"> Multi-Agent</label>
+    </div>
+
+    <label>Order number
+      <input id="orderNumber" value="1001" placeholder="e.g. 1001">
+    </label>
+
+    <label>Customer message
+      <textarea id="message" rows="5">Where is my order? Please check the delivery status.</textarea>
+    </label>
+
+    <button id="resolve">Resolve request</button>
+  </section>
+
+  <section class="card" id="progress" hidden>
+    <h2>Agent progress</h2>
+    <p id="stage">Preparing request…</p>
+    <div class="spinner"></div>
+  </section>
+
+  <section class="card" id="result" hidden>
+    <h2>Resolution</h2>
+    <div id="answer"></div>
+  </section>
+
+  <section class="card" id="trace" hidden>
+    <h2>Execution</h2>
+    <p>High-level execution events are shown here. Hidden model reasoning is never displayed.</p>
+    <ol id="events"></ol>
+  </section>
+</main>
+<script src="/app.js"></script>
+</body>
+</html>
